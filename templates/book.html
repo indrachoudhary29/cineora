@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineora | Immersive Booking</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --accent: #7000ff;
+            --bg: #050507;
+            --surface: #121217;
+            --seat-avail: #1a1a20;
+            --seat-sold: #0d0d0f;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.15), transparent 50%);
+        }
+
+        /* 3D THEATER ENVIRONMENT */
+        .theater-wrapper {
+            perspective: 1000px;
+            padding-top: 50px;
+        }
+
+        .cinema-screen {
+            height: 120px;
+            width: 80%;
+            margin: 0 auto 80px;
+            background: linear-gradient(to bottom, var(--primary), transparent);
+            border-radius: 50% / 20px;
+            box-shadow: 0 30px 50px -10px rgba(0, 242, 255, 0.4);
+            transform: rotateX(-30deg);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cinema-screen::after {
+            content: "SCREEN";
+            letter-spacing: 15px;
+            color: rgba(255,255,255,0.2);
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        /* SEAT STYLING */
+        .seat-map {
+            transform: rotateX(25deg);
+            margin-bottom: 100px;
+        }
+
+        .seat-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .seat {
+            width: 35px;
+            height: 32px;
+            background: var(--seat-avail);
+            border-radius: 6px 6px 15px 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .seat:hover {
+            background: #252530;
+            transform: scale(1.2) translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .seat.selected {
+            background: var(--primary);
+            box-shadow: 0 0 25px var(--primary), inset 0 -5px 10px rgba(0,0,0,0.2);
+            border-color: white;
+            transform: scale(1.1) translateY(-2px);
+        }
+
+        .seat.occupied {
+            background: var(--seat-sold);
+            cursor: not-allowed;
+            opacity: 0.2;
+        }
+
+        .seat::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+
+        /* GLASSMORPHIC CHECKOUT */
+        .checkout-card {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            background: rgba(18, 18, 23, 0.8);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .movie-info-mini h4 { font-weight: 800; margin-bottom: 0; }
+        .movie-info-mini p { color: var(--primary); font-family: 'Space Mono'; font-size: 0.8rem; margin: 0; }
+
+        .price-tag {
+            text-align: right;
+        }
+
+        .total-amount {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: block;
+            color: white;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.4s;
+            box-shadow: 0 10px 20px rgba(112, 0, 255, 0.3);
+        }
+
+        .btn-confirm:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(112, 0, 255, 0.5);
+        }
+
+        /* LEGEND */
+        .legend {
+            background: var(--surface);
+            padding: 15px 30px;
+            border-radius: 100px;
+            display: inline-flex;
+            gap: 25px;
+            margin-bottom: 40px;
+            border: 1px solid var(--border);
+        }
+        
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #888; }
+        .legend-item .seat { width: 15px; height: 14px; margin: 0; pointer-events: none; }
+
+    </style>
+</head>
+<body>
+
+<div class="container text-center theater-wrapper">
+    <div class="cinema-screen"></div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="seat"></div> Available</div>
+        <div class="legend-item"><div class="seat selected"></div> Selected</div>
+        <div class="legend-item"><div class="seat occupied"></div> Occupied</div>
+    </div>
+
+    <div class="seat-map">
+        <div class="seat-container" id="seatGrid"></div>
+    </div>
+</div>
+
+<div class="checkout-card">
+    <div class="movie-info-mini">
+        <p>NOW BOOKING</p>
+        <h4>{{ movie.title }}</h4>
+        <div class="mt-2">
+            <span class="badge bg-dark me-2" id="selectedCount">0 Seats</span>
+            <span class="text-secondary small" id="seatNumbers">Select your spot</span>
+        </div>
+    </div>
+
+    <div class="d-flex align-items: center; gap: 40px;">
+        <div class="price-tag">
+            <p class="text-secondary small mb-0">TOTAL PAYABLE</p>
+            <span class="total-amount" id="totalPrice">$0.00</span>
+        </div>
+        <button class="btn-confirm" onclick="executeBooking()">
+            Confirm Seats <i class="fa-solid fa-arrow-right ms-2"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+    const seatGrid = document.getElementById('seatGrid');
+    const selectedCount = document.getElementById('selectedCount');
+    const seatNumbers = document.getElementById('seatNumbers');
+    const totalPriceDisplay = document.getElementById('totalPrice');
+    
+    let selectedSeats = [];
+    const PRICE = parseFloat("{{ movie.price }}");
+
+    // Create 72 Seats (6 rows x 12 columns)
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
+    rows.forEach(rowLetter => {
+        for (let i = 1; i <= 12; i++) {
+            const seatId = `${rowLetter}${i}`;
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            
+            // Randomly occupy some seats for realism
+            if (Math.random() < 0.15) seat.classList.add('occupied');
+
+            seat.onclick = () => {
+                if (!seat.classList.contains('occupied')) {
+                    seat.classList.toggle('selected');
+                    if (selectedSeats.includes(seatId)) {
+                        selectedSeats = selectedSeats.filter(s => s !== seatId);
+                    } else {
+                        selectedSeats.push(seatId);
+                    }
+                    updateDashboard();
+                }
+            };
+            seatGrid.appendChild(seat);
+        }
+    });
+
+    function updateDashboard() {
+        selectedCount.innerText = `${selectedSeats.length} Seats`;
+        seatNumbers.innerText = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Select your spot';
+        totalPriceDisplay.innerText = `$${(selectedSeats.length * PRICE).toFixed(2)}`;
+    }
+
+    async function executeBooking() {
+        if (selectedSeats.length === 0) {
+            alert("The lights are dimming! Please pick your seats first.");
+            return;
+        }
+
+        const payload = {
+            movie_id: "{{ movie.id }}",
+            show_time: "07:00 PM", // You can add a time picker if needed
+            seats: selectedSeats,
+            total_price: (selectedSeats.length * PRICE)
+        };
+
+        try {
+            const response = await fetch('/api/reserve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const res = await response.json();
+            if (res.status === 'success') {
+                window.location.href = '/my-bookings';
+            } else {
+                alert(res.message);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    async function confirmBooking() {
+    console.log("Button clicked! Starting reservation process..."); // To check if the function even runs
+
+    // Ensure seats are selected
+    if (!selectedSeats || selectedSeats.length === 0) {
+        alert("Please select at least one seat.");
+        return;
+    }
+
+    // Prepare the exact data the Python code needs
+    const payload = {
+        movie_id: "{{ movie.id }}",
+        show_time: "07:00 PM",
+        seats: selectedSeats,
+        total_price: totalAmount
+    };
+
+    console.log("Sending Payload:", payload);
+
+    try {
+        // We use the full URL path to avoid "Not Found" errors
+        const response = await fetch('/api/reserve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.status === 404) {
+            alert("Error 404: The server doesn't recognize '/api/reserve'. Check your app.py!");
+            return;
+        }
+
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            alert("SUCCESS: Seats Secured!");
+            window.location.href = "/admin"; // Redirect to see the revenue
+        } else {
+            alert("DATABASE ERROR: " + data.message);
+        }
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        alert("Server communication failed. Is Flask running?");
+    }
+}
+</script>
+
+</body>
+</html>

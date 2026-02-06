@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cineora | Advanced Seat Selection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #00f2ff; --occupied: #323232; --selected: #7000ff; --bg: #09090b; }
+        body { background: var(--bg); color: white; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+
+        /* The Cinema Perspective */
+        .theatre-container { perspective: 800px; padding: 60px 0; }
+        .screen {
+            height: 120px; width: 60%; background: #fff; margin: 0 auto 80px auto;
+            transform: rotateX(-35deg);
+            box-shadow: 0 15px 100px rgba(0, 242, 255, 0.4);
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            color: #000; font-weight: 800; letter-spacing: 10px;
+        }
+
+        /* Seat Grid Logic */
+        .seat-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 12px; }
+        .seat {
+            width: 38px; height: 34px; background: #1a1a1e;
+            border-radius: 8px 8px 18px 18px; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .seat:hover:not(.occupied) { transform: translateY(-5px) scale(1.1); background: #2a2a2e; border-color: var(--primary); }
+        .seat.selected { background: var(--primary); box-shadow: 0 0 20px var(--primary); transform: scale(1.1); }
+        .seat.occupied { background: var(--occupied); cursor: not-allowed; opacity: 0.3; }
+
+        /* Floating Summary Card */
+        .checkout-panel {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 800px; background: rgba(17, 17, 20, 0.9);
+            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px; padding: 25px; display: flex; justify-content: space-between; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container text-center mt-5">
+    <h2 class="fw-bold">Select Your <span class="text-info">Experience</span></h2>
+    <p class="text-secondary">Movie: {{ movie.title }} | Time: 19:30 PM</p>
+
+    <div class="theatre-container">
+        <div class="screen">SCREEN</div>
+        
+        <div id="seat-layout">
+            </div>
+    </div>
+
+    <div class="d-flex justify-content-center gap-4 mt-4 text-secondary small">
+        <div><span class="seat d-inline-block" style="width:15px; height:15px; vertical-align:middle"></span> Available</div>
+        <div><span class="seat selected d-inline-block" style="width:15px; height:15px; vertical-align:middle"></span> Selected</div>
+        <div><span class="seat occupied d-inline-block" style="width:15px; height:15px; vertical-align:middle"></span> Occupied</div>
+    </div>
+</div>
+
+<div class="checkout-panel">
+    <div class="details">
+        <h6 class="text-secondary mb-1">Seats: <span id="seat-codes" class="text-white">None</span></h6>
+        <h4 class="mb-0">Total: <span class="text-info" id="total-price">$0</span></h4>
+    </div>
+    <div class="actions">
+        <button class="btn btn-outline-light rounded-pill px-4 me-3" onclick="location.href='/'">Cancel</button>
+        <button class="btn btn-info rounded-pill px-5 fw-bold" onclick="proceedToPayment()">Confirm Reservation</button>
+    </div>
+</div>
+
+<script>
+    const layout = document.getElementById('seat-layout');
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const seatsPerRow = 10;
+    let selectedSeats = [];
+
+    // Generate Seats
+    rows.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+        for(let i=1; i<=seatsPerRow; i++){
+            const seat = document.createElement('div');
+            seat.className = 'seat';
+            seat.dataset.code = `${row}${i}`;
+            
+            // Randomly mark some as occupied for UI demo
+            if(Math.random() < 0.2) seat.classList.add('occupied');
+
+            seat.onclick = () => {
+                if(!seat.classList.contains('occupied')) {
+                    seat.classList.toggle('selected');
+                    const code = seat.dataset.code;
+                    if(selectedSeats.includes(code)) {
+                        selectedSeats = selectedSeats.filter(s => s !== code);
+                    } else {
+                        selectedSeats.push(code);
+                    }
+                    updateUI();
+                }
+            };
+            rowDiv.appendChild(seat);
+        }
+        layout.appendChild(rowDiv);
+    });
+
+    function updateUI() {
+        document.getElementById('seat-codes').innerText = selectedSeats.join(', ') || 'None';
+        document.getElementById('total-price').innerText = `$${selectedSeats.length * 15}`;
+    }
+
+    async function proceedToPayment() {
+        if(selectedSeats.length === 0) return alert("Select at least one seat.");
+        // Use Fetch API to talk to Python backend
+        const response = await fetch('/api/book', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ seats: selectedSeats, movie_id: "{{ movie.id }}" })
+        });
+        alert("Booking request sent for: " + selectedSeats.join(', '));
+    }
+    fetch('/api/reserve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bookingData)
+})
+.then(res => res.json())
+.then(data => {
+    if(data.status === 'success') {
+        alert("Booking Successful!");
+        window.location.href = "/my-bookings"; // Redirect to history
+    } else {
+        alert(data.message);
+    }
+});
+
+</script>
+</body>
+</html>
