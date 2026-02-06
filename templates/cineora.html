@@ -471,7 +471,7 @@
         </a>
     </div>
 </div>
-
+<input type="checkbox" id="adminSwitch" onchange="toggleAdminMode()">
 
 </section>
 
@@ -479,19 +479,34 @@
     </main>
 
     <script>
-        document.getElementById('globalSearch').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            const cards = document.querySelectorAll('.movie-card');
+    // ... your other scripts (like the form submit animation) ...
+
+    function toggleAdminMode() {
+        const isChecked = document.getElementById('adminSwitch').checked;
+        const roleInput = document.getElementById('userRole'); // The hidden input from Step 1
+        const adminText = document.getElementById('adminText');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (isChecked) {
+            // 1. UPDATE THE BRIDGE (This is the most important line)
+            roleInput.value = 'admin';
             
-            cards.forEach(card => {
-                const title = card.getAttribute('data-title').toLowerCase();
-                if(title.includes(query)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    </script>
+            // 2. VISUAL FEEDBACK (Optional but recommended)
+            adminText.innerText = "ADMIN MODE ON";
+            adminText.style.color = "#7000ff"; // Purple for Admin
+            submitBtn.style.background = "#7000ff";
+        } else {
+            // 1. RESET THE BRIDGE
+            roleInput.value = 'user';
+            
+            // 2. RESET VISUALS
+            adminText.innerText = "ADMIN MODE OFF";
+            adminText.style.color = ""; 
+            submitBtn.style.background = "linear-gradient(45deg, #00f2ff, #7000ff)";
+        }
+        
+        console.log("System Role set to:", roleInput.value);
+    }
+</script>
 </body>
 </html>

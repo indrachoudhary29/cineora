@@ -33,7 +33,6 @@
             width: 100vw;
         }
 
-        /* Left Side: Cinematic Branding */
         .login-visual {
             flex: 1;
             background: linear-gradient(rgba(9, 9, 11, 0.4), rgba(9, 9, 11, 0.9)),
@@ -51,7 +50,6 @@
             font-size: 4.5rem;
             font-weight: 800;
             letter-spacing: -2px;
-            line-height: 1;
         }
 
         .visual-content span {
@@ -60,7 +58,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Right Side: Glass Login Form */
         .login-form-section {
             width: 550px;
             background: var(--bg-dark);
@@ -86,71 +83,72 @@
             background: rgba(255,255,255,0.05) !important;
             border: 1px solid var(--border) !important;
             color: white !important;
-            padding: 15px 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-neon) !important;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-            outline: none;
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
         }
 
         .btn-login {
             background: linear-gradient(45deg, var(--primary-neon), var(--accent-purple));
             border: none;
             color: white;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 12px;
+            border-radius: 12px;
             width: 100%;
             font-weight: 700;
-            letter-spacing: 1px;
             transition: 0.4s;
-            margin-top: 10px;
         }
 
-        .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(112, 0, 255, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .social-login {
+        .admin-toggle-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
             display: flex;
-            gap: 15px;
-            margin-top: 30px;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent-purple); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
         .social-btn {
             flex: 1;
             background: var(--surface);
             border: 1px solid var(--border);
             color: white;
-            padding: 12px;
-            border-radius: 12px;
-            transition: 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .social-btn:hover { background: rgba(255,255,255,0.1); }
-
-        /* Floating Animation */
-        .blob {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: var(--accent-purple);
-            filter: blur(100px);
-            border-radius: 50%;
-            z-index: -1;
-            opacity: 0.2;
-            animation: move 10s infinite alternate;
-        }
-
-        @keyframes move {
-            from { transform: translate(-10%, -10%); }
-            to { transform: translate(20%, 20%); }
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -158,65 +156,83 @@
 
     <div class="login-container">
         <div class="login-visual">
-            <div class="blob"></div>
             <div class="visual-content">
                 <p class="text-primary-neon fw-bold mb-2">WELCOME BACK</p>
                 <h1>Experience <br><span>Cinema.</span></h1>
-                <p class="text-secondary mt-4 w-75">Access the most advanced movie reservation system. Your premium seat awaits.</p>
+                <p class="text-secondary mt-4 w-75">Access the most advanced movie reservation system.</p>
             </div>
         </div>
 
         <div class="login-form-section">
             <div class="glass-box">
-                <div class="text-center mb-5">
+                <div class="text-center mb-4">
                     <h3 class="fw-800">CINEORA</h3>
                     <p class="text-secondary small">Enter your credentials to continue</p>
                 </div>
 
                 <form id="loginForm" action="/login" method="POST">
-                    <div class="input-group-custom">
-                        <label class="small text-secondary mb-2 ms-2">Email Address</label>
+                    <input type="hidden" name="role" id="userRole" value="user">
+
+                    <div class="mb-3">
+                        <label class="small text-secondary mb-1">Email Address</label>
                         <input type="email" class="form-control" name="email" placeholder="name@example.com" required>
                     </div>
 
-                    <div class="input-group-custom">
-                        <label class="small text-secondary mb-2 ms-2">Password</label>
+                    <div class="mb-3">
+                        <label class="small text-secondary mb-1">Password</label>
                         <input type="password" class="form-control" name="password" placeholder="••••••••" required>
                     </div>
 
-                    <div class="d-flex justify-content-between mb-4 px-2">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="remember">
-                            <label class="form-check-label small text-secondary" for="remember">Remember me</label>
+                    <div class="admin-toggle-wrapper" id="toggleWrapper">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-user-shield me-2 text-secondary"></i>
+                            <span class="small fw-bold text-secondary" id="adminText">ADMIN MODE OFF</span>
                         </div>
-                        <a href="/forgot-password" class="small text-primary-neon text-decoration-none">Forgot Password?</a>
+                        <label class="switch">
+                            <input type="checkbox" id="adminSwitch" onchange="toggleAdminMode()">
+                            <span class="slider"></span>
+                        </label>
                     </div>
 
-                    <button type="submit" class="btn-login">SIGN IN</button>
+                    <button type="submit" class="btn-login" id="submitBtn">SIGN IN</button>
                 </form>
 
                 <div class="text-center mt-4">
-                    <p class="small text-secondary">Or sign in with</p>
-                    <div class="social-login">
+                    <p class="small text-secondary mb-3">Or sign in with</p>
+                    <div class="d-flex gap-2 mb-4">
                         <button class="social-btn"><i class="fab fa-google me-2"></i>Google</button>
-                        <button class="social-btn"><i class="fab fa-apple me-2"></i>Apple ID</button>
+                        <button class="social-btn"><i class="fab fa-apple me-2"></i>Apple</button>
                     </div>
-                    <p class="small text-secondary mt-5">Don't have an account? <a href="/register" class="text-primary-neon text-decoration-none">Create one</a></p>
+                    <p class="small text-secondary">Don't have an account? <a href="/register" class="text-primary-neon text-decoration-none">Create one</a></p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-    // Prevents the user from using the "Back" button to see the dashboard after logout
-    if (window.history.replaceState) {
-        window.history.replaceState(null, null, window.location.href);
-    }
-</script>
-        // Smooth transition effect on form submit
+        function toggleAdminMode() {
+            const isChecked = document.getElementById('adminSwitch').checked;
+            const roleInput = document.getElementById('userRole');
+            const adminText = document.getElementById('adminText');
+            const submitBtn = document.getElementById('submitBtn');
+
+            roleInput.value = isChecked ? 'admin' : 'user';
+
+            if (isChecked) {
+                adminText.innerText = "ADMIN MODE ON";
+                adminText.style.color = "#7000ff";
+                submitBtn.style.background = "#7000ff";
+            } else {
+                adminText.innerText = "ADMIN MODE OFF";
+                adminText.style.color = "";
+                submitBtn.style.background = "linear-gradient(45deg, #00f2ff, #7000ff)";
+            }
+        }
+
         document.getElementById('loginForm').onsubmit = function() {
-            document.querySelector('.glass-box').style.opacity = '0.5';
-            document.querySelector('.btn-login').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> CONNECTING...';
+            return true;
         };
     </script>
 </body>

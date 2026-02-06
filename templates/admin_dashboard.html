@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineora Elite Admin | Global Command Center</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --neon-purple: #7000ff;
+            --deep-bg: #030305;
+            --sidebar-bg: #0a0a0c;
+            --surface: #111114;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --bs-table-hover-bg: rgba(0, 242, 255, 0.05);
+        }
+
+        body {
+            background-color: var(--deep-bg);
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR NAVIGATION */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--neon-cyan);
+            margin-bottom: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link {
+            color: #888;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--glass);
+            color: var(--neon-cyan);
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        /* MAIN LAYOUT */
+        .main-wrapper {
+            margin-left: 280px;
+            padding: 40px;
+            width: 100%;
+        }
+
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+        }
+
+        /* ANALYTICS CARDS */
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 25px;
+            transition: 0.4s;
+            position: relative;
+        }
+
+        .stat-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            color: var(--neon-cyan);
+        }
+
+        .val-display {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* CHART & DATA PANELS */
+        .viz-panel {
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .booking-table-wrapper {
+            background: var(--surface);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .table {
+            margin: 0;
+            color: #ccc;
+            border-color: var(--border);
+        }
+
+        .table thead {
+            background: rgba(255,255,255,0.02);
+            color: var(--neon-cyan);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table td, .table th {
+            padding: 18px 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-success { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+        .badge-pending { background: rgba(255, 187, 0, 0.1); color: #ffbb00; }
+
+        /* SCROLLBAR CUSTOMIZATION */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--deep-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-clapperboard"></i> CINEORA ELITE
+        </div>
+        
+        <nav>
+            <a href="#" class="nav-link active"><i class="fa-solid fa-house"></i> Overview</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-film"></i> Movie Management</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-calendar-check"></i> Showtimes</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-users"></i> Customer Base</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-ticket-weighted"></i> Ticket Logs</a>
+            <a href="#" class="nav-link"><i class="fa-solid fa-gear"></i> System Config</a>
+        </nav>
+
+        <div class="mt-auto">
+            <a href="/login" class="nav-link text-danger"><i class="fa-solid fa-power-off"></i> Terminate Session</a>
+        </div>
+    </aside>
+
+    <main class="main-wrapper">
+        
+        <header class="command-header">
+            <div>
+                <h2 class="fw-800 mb-1">Global Command Center</h2>
+                <p class="text-secondary small">Monitoring Live Streams from 24 Cinemas</p>
+            </div>
+            <div class="d-flex gap-3">
+                <button class="btn btn-outline-secondary rounded-pill px-4 btn-sm">Export CSV</button>
+                <button class="btn btn-info rounded-pill px-4 btn-sm fw-bold">Add New Movie</button>
+            </div>
+        </header>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    <p class="text-secondary small fw-bold">GROSS REVENUE</p>
+                    <div class="val-display">₹{{ "%.0f"|format(revenue|default(450000)) }}</div>
+                    <div class="text-success small mt-2"><i class="fa-solid fa-arrow-trend-up"></i> +14% Trend</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-ticket"></i></div>
+                    <p class="text-secondary small fw-bold">TOTAL ADMISSIONS</p>
+                    <div class="val-display">{{ bookings_count|default(1284) }}</div>
+                    <div class="text-info small mt-2">Tickets Sold Today</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-couch"></i></div>
+                    <p class="text-secondary small fw-bold">SEAT OCCUPANCY</p>
+                    <div class="val-display">78.4%</div>
+                    <div class="text-warning small mt-2">Peak Hours Active</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                    <p class="text-secondary small fw-bold">USER RETENTION</p>
+                    <div class="val-display">92%</div>
+                    <div class="text-primary small mt-2">Verified Profiles</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-8">
+                <div class="viz-panel">
+                    <h5 class="fw-bold mb-4 text-secondary">REVENUE TRAJECTORY (WEEKLY)</h5>
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="viz-panel">
+                    <h5 class="fw-bold mb-4 text-secondary">MOST BOOKED SHOWS</h5>
+                    <div class="show-item mb-3 p-3 rounded-4 bg-dark border border-secondary">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-bold">The Dark Knight</span>
+                            <span class="small text-info">45% Booked</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: #222;">
+                            <div class="progress-bar bg-info" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <div class="show-item mb-3 p-3 rounded-4 bg-dark border border-secondary">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-bold">Inception</span>
+                            <span class="small text-warning">32% Booked</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: #222;">
+                            <div class="progress-bar bg-warning" style="width: 32%"></div>
+                        </div>
+                    </div>
+                    <div class="show-item mb-3 p-3 rounded-4 bg-dark border border-secondary">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-bold">Interstellar</span>
+                            <span class="small text-success">23% Booked</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: #222;">
+                            <div class="progress-bar bg-success" style="width: 23%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="booking-table-wrapper">
+            <div class="p-4 border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="m-0 fw-bold">LIVE TRANSACTION STREAM</h5>
+                <input type="text" class="form-control form-control-sm w-25 bg-dark border-secondary text-white" placeholder="Filter by Name...">
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Show Details</th>
+                        <th>Seats</th>
+                        <th>Revenue</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ b.fullname }}</div>
+                            <div class="text-secondary small">ID: #{{ b.id }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-info">{{ b.movie_title or b.title }}</div>
+                            <div class="text-secondary small">{{ b.show_time }}</div>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ b.seats_selected }}</span></td>
+                        <td class="fw-bold">₹{{ b.total_price }}</td>
+                        <td><span class="badge-status badge-success">COMPLETED</span></td>
+                        <td><button class="btn btn-sm btn-outline-info rounded-circle"><i class="fa-solid fa-eye"></i></button></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td><strong>Rahul Sharma</strong><br><small class="text-secondary">#UID882</small></td>
+                        <td><span class="text-info">The Dark Knight</span><br><small class="text-secondary">09:00 PM</small></td>
+                        <td>B12, B13</td>
+                        <td>₹600.00</td>
+                        <td><span class="badge-status badge-success">COMPLETED</span></td>
+                        <td><button class="btn btn-sm btn-outline-info">View</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // REVENUE CHART LOGIC
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Gross Sales (₹)',
+                    data: [12000, 19000, 15000, 25000, 32000, 45000, 52000],
+                    borderColor: '#00f2ff',
+                    borderWidth: 4,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 242, 255, 0.05)',
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#00f2ff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+                    x: { grid: { display: false }, ticks: { color: '#888' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
